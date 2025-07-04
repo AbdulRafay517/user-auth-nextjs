@@ -55,7 +55,7 @@ async function testDatabaseConnection() {
         
         console.log("\n✅ Database test completed successfully!");
         
-    } catch (error) {
+    } catch (error : any) {
         console.error("\n❌ Database connection failed:");
         console.error("Error type:", error.constructor.name);
         console.error("Error message:", error.message);
@@ -110,7 +110,7 @@ export default async function handler(req: any, res: any) {
             message: 'Database test completed',
             output: output 
         });
-    } catch (error) {
+    } catch (error : any) {
         res.status(500).json({ 
             success: false, 
             message: 'Database test failed',

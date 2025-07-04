@@ -11,43 +11,74 @@ export async function POST(request: NextRequest) {
         const reqBody = await request.json();
         const { email, password } = reqBody;
 
-        //check if user exists
+        // Validate input
+        if (!email || !password) {
+            return NextResponse.json({ 
+                error: "Email and password are required" 
+            }, { status: 400 });
+        }
+
+        // Validate email format
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            return NextResponse.json({ 
+                error: "Please provide a valid email address" 
+            }, { status: 400 });
+        }
+
+        // Check if user exists
         const user = await User.findOne({ email });
         if (!user) {
-            return NextResponse.json({ error: "User does not exist" }, { status: 400 });
+            return NextResponse.json({ 
+                error: "Invalid email or password" 
+            }, { status: 401 });
         }
 
-        //check if password is correct
+        // Check if password is correct
         const validPassword = await bcryptjs.compare(password, user.password);
         if (!validPassword) {
-            return NextResponse.json({ error: "Invalid password" }, { status: 400 });
+            return NextResponse.json({ 
+                error: "Invalid email or password" 
+            }, { status: 401 });
         }
 
-        //create token data
+        // Create token data
         const tokenData = {
             id: user._id,
             username: user.username,
             email: user.email,
         }
 
-        //create token
-        const token = await jwt.sign(tokenData, process.env.TOKEN_SECRET!, { expiresIn: "1d" });
+        // Create token
+        const token = await jwt.sign(tokenData, process.env.TOKEN_SECRET!, { 
+            expiresIn: "7d" 
+        });
 
         const response = NextResponse.json({
             message: "Login successful",
             success: true,
-            user: user,
-            token: token,
+            user: {
+                id: user._id,
+                username: user.username,
+                email: user.email,
+            },
         }, { status: 200 });
 
+        // Set secure cookie
         response.cookies.set("token", token, { 
             httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "strict",
+            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
             path: "/"
         });
 
         return response;
         
     } catch (error: any) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        console.error("Login error:", error);
+        return NextResponse.json({ 
+            error: "Internal server error. Please try again." 
+        }, { status: 500 });
     }
 }

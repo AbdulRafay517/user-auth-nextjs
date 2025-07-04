@@ -40,7 +40,10 @@ export async function POST(request: NextRequest) {
             token: token,
         }, { status: 200 });
 
-        response.cookies.set("token", token, { httpOnly: true });
+        response.cookies.set("token", token, { 
+            httpOnly: true,
+            path: "/"
+        });
 
         return response;
         

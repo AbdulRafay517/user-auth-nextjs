@@ -27,11 +27,14 @@ export default function LoginPage() {
     const onLogin = async () => {
         try {
             setLoading(true);
-            const response = await axios.post("/api/users/login", user);
+            await axios.post("/api/users/login", user);
             toast.success("Login successful!");
             router.push("/profile");
-        } catch(error: any) {
-            const errorMessage = error.response?.data?.error || "Login failed. Please try again.";
+        } catch(error: unknown) {
+            const isAxiosError = error && typeof error === 'object' && 'response' in error;
+            const errorMessage = isAxiosError ? 
+                (error as { response?: { data?: { error?: string } } }).response?.data?.error || "Login failed. Please try again." :
+                "Login failed. Please try again.";
             toast.error(errorMessage);
         } finally {
             setLoading(false);
@@ -106,7 +109,7 @@ export default function LoginPage() {
 
                     <div className="mt-6 text-center">
                         <p className="text-gray-600 dark:text-gray-400">
-                            Don't have an account?{" "}
+                            Don&apos;t have an account?{" "}
                             <Link 
                                 href="/signup" 
                                 className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-semibold transition-colors duration-200"

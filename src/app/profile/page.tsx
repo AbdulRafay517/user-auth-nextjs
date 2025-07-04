@@ -7,17 +7,24 @@ import { toast } from "react-hot-toast";
 
 export default function ProfilePage() {
     const router = useRouter();
-    const [data, setData] = useState<any>(null);
+    const [data, setData] = useState<{
+        _id: string;
+        username: string;
+        email: string;
+    } | null>(null);
     const [loading, setLoading] = useState(true);
 
     const onLogout = async () => {
         try {
-            const res = await axios.get("/api/users/logout");
+            await axios.get("/api/users/logout");
             toast.success("Logged out successfully");
             router.push("/login");
-        } catch (error: any) {
+        } catch (error: unknown) {
             toast.error("Logout failed");
-            console.log(error.response?.data);
+            const isAxiosError = error && typeof error === 'object' && 'response' in error;
+            if (isAxiosError) {
+                console.log((error as { response?: { data?: unknown } }).response?.data);
+            }
         }
     }
 
@@ -25,9 +32,12 @@ export default function ProfilePage() {
         try {
             const res = await axios.get("/api/users/me");
             setData(res.data.data);
-        } catch (error: any) {
+        } catch (error: unknown) {
             toast.error("Failed to load user details");
-            console.log(error.response?.data);
+            const isAxiosError = error && typeof error === 'object' && 'response' in error;
+            if (isAxiosError) {
+                console.log((error as { response?: { data?: unknown } }).response?.data);
+            }
         } finally {
             setLoading(false);
         }

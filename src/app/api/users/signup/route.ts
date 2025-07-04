@@ -79,12 +79,13 @@ export async function POST(request: NextRequest) {
             },
         }, { status: 201 });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("Signup error:", error);
         
         // Handle MongoDB duplicate key errors
-        if (error.code === 11000) {
-            const field = Object.keys(error.keyValue)[0];
+        if (error && typeof error === 'object' && 'code' in error && error.code === 11000 && 'keyValue' in error) {
+            const mongoError = error as { keyValue: Record<string, unknown> };
+            const field = Object.keys(mongoError.keyValue)[0];
             return NextResponse.json({ 
                 error: `${field.charAt(0).toUpperCase() + field.slice(1)} already exists` 
             }, { status: 409 });

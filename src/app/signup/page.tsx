@@ -20,11 +20,14 @@ export default function SignupPage() {
     const onSignup = async () => {
         try {
             setLoading(true);
-            const response = await axios.post("/api/users/signup", user);
+            await axios.post("/api/users/signup", user);
             toast.success("Account created successfully! Please sign in.");
             router.push("/login");
-        } catch (error: any) {
-            const errorMessage = error.response?.data?.error || "Signup failed. Please try again.";
+        } catch (error: unknown) {
+            const isAxiosError = error && typeof error === 'object' && 'response' in error;
+            const errorMessage = isAxiosError ? 
+                (error as { response?: { data?: { error?: string } } }).response?.data?.error || "Signup failed. Please try again." :
+                "Signup failed. Please try again.";
             toast.error(errorMessage);
         } finally {
             setLoading(false);

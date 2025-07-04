@@ -20,12 +20,15 @@ export default function UserProfile({params}: {params: Promise<{id: string}>}) {
 
     const onLogout = async () => {
         try {
-            const res = await axios.get("/api/users/logout");
+            await axios.get("/api/users/logout");
             toast.success("Logged out successfully");
             router.push("/login");
-        } catch (error: any) {
+        } catch (error: unknown) {
             toast.error("Logout failed");
-            console.log(error.response?.data);
+            const isAxiosError = error && typeof error === 'object' && 'response' in error;
+            if (isAxiosError) {
+                console.log((error as { response?: { data?: unknown } }).response?.data);
+            }
         }
     }
 
